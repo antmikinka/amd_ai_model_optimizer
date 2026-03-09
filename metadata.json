@@ -1,0 +1,5 @@
+{
+  "name": "AMD AI Analyzer",
+  "description": "A tool that supports analysis and visualization of model compilation and inference on Ryzen AI.",
+  "requestFramePermissions": []
+}
