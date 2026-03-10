@@ -12,9 +12,18 @@ const operations = [
   { id: 15, name: 'layer_norm_1', type: 'layer_normalization', time: '4', cpu: false, npu: true },
 ];
 
-export default function PerformanceSummary() {
+export default function PerformanceSummary({ selectedModel }: { selectedModel?: string }) {
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [selectedComputeUnit, setSelectedComputeUnit] = useState('All');
+  
+  const modelName = selectedModel || 'deepseek-v3';
+  
+  const stats = {
+    'deepseek-v3': { prediction: '62.78', load: '83.34', compilation: '129.05', totalOps: 707, cpuOps: 17, npuOps: 690 },
+    'llama-3-8b': { prediction: '45.12', load: '60.21', compilation: '95.40', totalOps: 450, cpuOps: 12, npuOps: 438 },
+    'mistral-7b': { prediction: '42.85', load: '58.90', compilation: '92.15', totalOps: 420, cpuOps: 10, npuOps: 410 },
+    'qwen-1.5-7b': { prediction: '44.30', load: '61.05', compilation: '98.50', totalOps: 465, cpuOps: 15, npuOps: 450 }
+  }[modelName] || { prediction: '62.78', load: '83.34', compilation: '129.05', totalOps: 707, cpuOps: 17, npuOps: 690 };
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto pb-12">
@@ -65,7 +74,7 @@ export default function PerformanceSummary() {
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-900 mb-2">Prediction</p>
           <div className="flex items-baseline space-x-1 mb-4">
-            <span className="text-4xl font-bold text-slate-900">62.78</span>
+            <span className="text-4xl font-bold text-slate-900">{stats.prediction}</span>
             <span className="text-sm font-medium text-slate-500">ms</span>
           </div>
           <div className="relative inline-block w-full">
@@ -82,7 +91,7 @@ export default function PerformanceSummary() {
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-900 mb-2">Load</p>
           <div className="flex items-baseline space-x-1 mb-4">
-            <span className="text-4xl font-bold text-slate-900">83.34</span>
+            <span className="text-4xl font-bold text-slate-900">{stats.load}</span>
             <span className="text-sm font-medium text-slate-500">ms</span>
           </div>
           <div className="relative inline-block w-full">
@@ -97,7 +106,7 @@ export default function PerformanceSummary() {
         <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <p className="text-sm font-medium text-slate-900 mb-2">Compilation</p>
           <div className="flex items-baseline space-x-1 mb-4">
-            <span className="text-4xl font-bold text-slate-900">129.05</span>
+            <span className="text-4xl font-bold text-slate-900">{stats.compilation}</span>
             <span className="text-sm font-medium text-slate-500">ms</span>
           </div>
           <div className="relative inline-block w-full">
@@ -116,22 +125,22 @@ export default function PerformanceSummary() {
         
         {/* The Bar */}
         <div className="h-8 w-full rounded-full overflow-hidden flex mb-4 shadow-inner bg-slate-100">
-          <div className="h-full bg-amber-400" style={{ width: '2.4%' }} title="CPU: 17 ops"></div>
-          <div className="h-full bg-indigo-500" style={{ width: '97.6%' }} title="NPU: 690 ops"></div>
+          <div className="h-full bg-amber-400" style={{ width: `${(stats.cpuOps / stats.totalOps) * 100}%` }} title={`CPU: ${stats.cpuOps} ops`}></div>
+          <div className="h-full bg-indigo-500" style={{ width: `${(stats.npuOps / stats.totalOps) * 100}%` }} title={`NPU: ${stats.npuOps} ops`}></div>
         </div>
 
         {/* Legend */}
         <div className="flex items-center space-x-6 border-b border-slate-100 pb-6 mb-2">
           <div className="flex items-center text-sm font-medium text-slate-900">
-            <span className="border-b-2 border-slate-900 pb-1">All: 707</span>
+            <span className="border-b-2 border-slate-900 pb-1">All: {stats.totalOps}</span>
           </div>
           <div className="flex items-center text-sm text-slate-600">
             <div className="w-3 h-3 rounded-full bg-amber-400 mr-2"></div>
-            CPU: 17
+            CPU: {stats.cpuOps}
           </div>
           <div className="flex items-center text-sm text-slate-600">
             <div className="w-3 h-3 rounded-full bg-indigo-500 mr-2"></div>
-            NPU: 690
+            NPU: {stats.npuOps}
           </div>
         </div>
 

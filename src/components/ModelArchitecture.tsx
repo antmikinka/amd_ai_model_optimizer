@@ -225,9 +225,17 @@ const TreeNode = ({ node, level = 0, defaultExpanded = false, path = '', highlig
   );
 };
 
-export default function ModelArchitecture() {
+export default function ModelArchitecture({ selectedModel }: { selectedModel?: string }) {
   const [activeProfileId, setActiveProfileId] = useState<keyof typeof profiles>('original');
   const activeProfile = profiles[activeProfileId];
+
+  // Map model ID to display name and parameters
+  const modelInfo = {
+    'deepseek-v3': { params: '35B (3B active)', dim: '2048', layout: '10 × (3 × (DeltaNet) → 1 × (Attn))' },
+    'llama-3-8b': { params: '8B', dim: '4096', layout: '32 × (Attn → MLP)' },
+    'mistral-7b': { params: '7B', dim: '4096', layout: '32 × (Attn → MLP)' },
+    'qwen-1.5-7b': { params: '7B', dim: '4096', layout: '32 × (Attn → MLP)' }
+  }[selectedModel || 'deepseek-v3'] || { params: '35B (3B active)', dim: '2048', layout: '10 × (3 × (DeltaNet) → 1 × (Attn))' };
 
   return (
     <div className="max-w-7xl mx-auto pb-12">
@@ -308,16 +316,16 @@ export default function ModelArchitecture() {
                 <div className="grid grid-cols-2 gap-y-4 gap-x-4">
                   <div>
                     <p className="text-xs text-slate-500 mb-1">Parameters</p>
-                    <p className="text-sm font-medium text-slate-900">35B (3B active)</p>
+                    <p className="text-sm font-medium text-slate-900">{modelInfo.params}</p>
                   </div>
                   <div>
                     <p className="text-xs text-slate-500 mb-1">Hidden Dim</p>
-                    <p className="text-sm font-medium text-slate-900">2048</p>
+                    <p className="text-sm font-medium text-slate-900">{modelInfo.dim}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-slate-500 mb-1">Hidden Layout</p>
                     <p className="text-xs font-mono bg-slate-50 p-2 rounded border border-slate-200 text-slate-700 mt-1">
-                      10 × (3 × (DeltaNet) → 1 × (Attn))
+                      {modelInfo.layout}
                     </p>
                   </div>
                 </div>

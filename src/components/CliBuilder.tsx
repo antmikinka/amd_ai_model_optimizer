@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
 import { 
   Terminal, 
-  BookOpen, 
   Wrench, 
-  Cpu, 
-  Layers, 
   Copy,
   Settings2,
   Info,
   Beaker,
   Combine,
-  ArrowRightLeft,
   FileCode2,
   Wand2,
   Bug
@@ -18,20 +14,21 @@ import {
 
 type Tab = 'pipeline' | 'builder' | 'generate' | 'recipes';
 
-export default function CliBuilder() {
+export default function CliBuilder({ selectedModel }: { selectedModel?: string }) {
   const [activeTab, setActiveTab] = useState<Tab>('recipes');
+  const modelName = selectedModel || 'deepseek-v3';
 
   // Builder State
-  const [bInput, setBInput] = useState('hf-model-dir');
-  const [bOutput, setBOutput] = useState('onnx-output-dir');
+  const [bInput, setBInput] = useState(modelName);
+  const [bOutput, setBOutput] = useState('qwen2-7b-dml');
   const [bPrecision, setBPrecision] = useState('int4');
   const [bEp, setBEp] = useState('dml');
   const [bExtra, setBExtra] = useState('');
 
   // Generate State
   const [gTarget, setGTarget] = useState('--hybrid');
-  const [gInput, setGInput] = useState('dml-model-dir');
-  const [gOutput, setGOutput] = useState('hybrid-output-dir');
+  const [gInput, setGInput] = useState('qwen2-7b-dml');
+  const [gOutput, setGOutput] = useState('qwen2-7b-hybrid');
   const [gOptimize, setGOptimize] = useState('');
 
   const generateBuilderCmd = () => {
@@ -530,7 +527,7 @@ config = Config(global_quant_config=quant_config)`}
                       code={`import torch
 model.eval()
 torch.onnx.export(
-    model, input, "model.onnx",
+    model, input, "qwen2_7b_instruct.onnx",
     opset_version=21,
     input_names=['input'], output_names=['output'],
 )`} 
@@ -545,8 +542,8 @@ torch.onnx.export(
                       <CodeBlock 
                         language="bash"
                         code={`python -m quark.onnx.tools.fix_shapes \\
-  --input_model_path model.onnx \\
-  --output_model_path model_fixed.onnx`} 
+  --input_model_path qwen2_7b_instruct.onnx \\
+  --output_model_path qwen2_7b_instruct_fixed.onnx`} 
                       />
                     </div>
 
@@ -557,8 +554,8 @@ torch.onnx.export(
                       <CodeBlock 
                         language="bash"
                         code={`python -m quark.onnx.tools.replace_inf_weights \\
-  --input_model model.onnx \\
-  --output_model model_clean.onnx`} 
+  --input_model qwen2_7b_instruct_fixed.onnx \\
+  --output_model qwen2_7b_instruct_clean.onnx`} 
                       />
                     </div>
                   </div>
@@ -586,8 +583,8 @@ torch.onnx.export(
                     code={`from onnxruntime.quantization import shape_inference
 
 shape_inference.quant_pre_process(
-    input_model_path="model_clean.onnx",
-    output_model_path="model_preprocessed.onnx",
+    input_model_path="qwen2_7b_instruct_clean.onnx",
+    output_model_path="qwen2_7b_instruct_preprocessed.onnx",
     skip_optimization=True, # MUST be True for models > 2GB
     skip_onnx_shape=False,
     skip_symbolic_shape=False,
@@ -616,7 +613,7 @@ shape_inference.quant_pre_process(
                         <CodeBlock 
                           language="bash"
                           code={`python -m quark.onnx.tools.convert_fp16_to_bfp16 \\
-  --input model.onnx --output model_bfp16.onnx \\
+  --input qwen2_7b_instruct_preprocessed.onnx --output qwen2_7b_instruct_bfp16.onnx \\
   --save_as_external_data`} 
                         />
                       </div>
@@ -625,7 +622,7 @@ shape_inference.quant_pre_process(
                         <CodeBlock 
                           language="bash"
                           code={`python -m quark.onnx.tools.convert_fp16_to_bf16 \\
-  --input model.onnx --output model_bf16.onnx \\
+  --input qwen2_7b_instruct_preprocessed.onnx --output qwen2_7b_instruct_bf16.onnx \\
   --format with_cast --save_as_external_data`} 
                         />
                       </div>
@@ -670,8 +667,8 @@ config = QConfig(
                         <CodeBlock 
                           language="bash"
                           code={`python -m quark.onnx.tools.random_quantize \\
-  --input_model_path model.onnx \\
-  --quantized_model_path model_quant.onnx`} 
+  --input_model_path qwen2_7b_instruct_preprocessed.onnx \\
+  --quantized_model_path qwen2_7b_instruct_quant.onnx`} 
                         />
                       </div>
                     </div>
@@ -708,12 +705,12 @@ else:
 
 so = ort.SessionOptions()
 so.register_custom_ops_library(vai_lib_path(device))
-session = ort.InferenceSession("quantized_model.onnx", so, providers=providers)
+session = ort.InferenceSession("qwen2_7b_instruct_quant.onnx", so, providers=providers)
 
 # 2. Dump Simulation Results for DPU Debugging
 import quark.onnx
 quark.onnx.dump_model(
-    "quantized_model.onnx",
+    "qwen2_7b_instruct_quant.onnx",
     dump_data_reader=None, # Set to None to use random data for quick testing
     dump_float=False,      # Set to True to save float data (requires massive storage)
     output_dir='./dump_results'

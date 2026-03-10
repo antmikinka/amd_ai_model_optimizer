@@ -43,7 +43,8 @@ const outputs = [
   }
 ];
 
-export default function ModelDetailsIO() {
+export default function ModelDetailsIO({ selectedModel }: { selectedModel?: string }) {
+  const modelName = selectedModel || 'deepseek-v3';
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>

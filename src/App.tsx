@@ -33,6 +33,14 @@ export default function App() {
   const [activeSection, setActiveSection] = useState<Section>('MODEL_DETAILS');
   const [activePage, setActivePage] = useState<Page>('Architecture & Tensors');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [selectedModel, setSelectedModel] = useState('deepseek-v3');
+
+  const models = [
+    { id: 'deepseek-v3', name: 'DeepSeek-V3 (35B)' },
+    { id: 'llama-3-8b', name: 'Llama-3 (8B)' },
+    { id: 'mistral-7b', name: 'Mistral (7B)' },
+    { id: 'qwen-1.5-7b', name: 'Qwen-1.5 (7B)' }
+  ];
 
   const navigation = [
     {
@@ -68,21 +76,21 @@ export default function App() {
   const renderContent = () => {
     switch (activeSection) {
       case 'DEPLOYMENT':
-        if (activePage === 'Lifecycle & Glossary') return <LifecycleGlossary />;
-        if (activePage === 'Overview Matrix') return <DeploymentMatrix />;
-        if (activePage === 'Conversion Wizard') return <ModelConversionFlow />;
-        return <CliBuilder />;
+        if (activePage === 'Lifecycle & Glossary') return <LifecycleGlossary selectedModel={selectedModel} />;
+        if (activePage === 'Overview Matrix') return <DeploymentMatrix selectedModel={selectedModel} />;
+        if (activePage === 'Conversion Wizard') return <ModelConversionFlow selectedModel={selectedModel} />;
+        return <CliBuilder selectedModel={selectedModel} />;
       case 'MODEL_DETAILS':
-        if (activePage === 'Architecture & Tensors') return <ModelArchitecture />;
-        return <ModelDetailsIO />;
+        if (activePage === 'Architecture & Tensors') return <ModelArchitecture selectedModel={selectedModel} />;
+        return <ModelDetailsIO selectedModel={selectedModel} />;
       case 'PARTITIONING':
-        return activePage === 'Summary' ? <PartitioningSummary /> : <PartitioningGraph />;
+        return activePage === 'Summary' ? <PartitioningSummary selectedModel={selectedModel} /> : <PartitioningGraph selectedModel={selectedModel} />;
       case 'NPU_INSIGHTS':
-        if (activePage === 'Summary') return <NpuInsightsSummary />;
-        if (activePage === 'Original Graph') return <NpuInsightsOriginalGraph />;
-        return <NpuInsightsOptimizedGraph />;
+        if (activePage === 'Summary') return <NpuInsightsSummary selectedModel={selectedModel} />;
+        if (activePage === 'Original Graph') return <NpuInsightsOriginalGraph selectedModel={selectedModel} />;
+        return <NpuInsightsOptimizedGraph selectedModel={selectedModel} />;
       case 'PERFORMANCE':
-        return activePage === 'Summary' ? <PerformanceSummary /> : <PerformanceTimeline />;
+        return activePage === 'Summary' ? <PerformanceSummary selectedModel={selectedModel} /> : <PerformanceTimeline selectedModel={selectedModel} />;
       default:
         return <div>Select a page</div>;
     }
@@ -96,7 +104,7 @@ export default function App() {
           isSidebarOpen ? 'w-64' : 'w-20'
         } bg-slate-900 text-slate-300 transition-all duration-300 flex flex-col`}
       >
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800 shrink-0">
           {isSidebarOpen && <span className="font-bold text-white text-lg tracking-tight">AI Analyzer</span>}
           <button 
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -105,6 +113,26 @@ export default function App() {
             <Menu size={20} />
           </button>
         </div>
+
+        {isSidebarOpen && (
+          <div className="px-4 py-4 border-b border-slate-800 shrink-0">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Target Model
+            </label>
+            <div className="relative">
+              <select
+                value={selectedModel}
+                onChange={(e) => setSelectedModel(e.target.value)}
+                className="w-full appearance-none bg-slate-800 border border-slate-700 text-white text-sm rounded-md pl-3 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-colors cursor-pointer"
+              >
+                {models.map(m => (
+                  <option key={m.id} value={m.id}>{m.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+            </div>
+          </div>
+        )}
 
         <nav className="flex-1 overflow-y-auto py-4">
           {navigation.map((item) => (

@@ -19,7 +19,17 @@ const cpuBecauseData = [
 
 const COLORS = ['#4f46e5', '#94a3b8'];
 
-export default function PartitioningSummary() {
+export default function PartitioningSummary({ selectedModel }: { selectedModel?: string }) {
+  const modelName = selectedModel || 'deepseek-v3';
+  
+  // Adjust stats based on model
+  const stats = {
+    'deepseek-v3': { total: '2,456', rate: '96.4%', fallback: '88' },
+    'llama-3-8b': { total: '1,248', rate: '94.2%', fallback: '72' },
+    'mistral-7b': { total: '1,120', rate: '95.1%', fallback: '55' },
+    'qwen-1.5-7b': { total: '1,340', rate: '93.8%', fallback: '83' }
+  }[modelName] || { total: '1,248', rate: '94.2%', fallback: '72' };
+
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
       <div className="flex justify-between items-end">
@@ -40,7 +50,7 @@ export default function PartitioningSummary() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">Total Operators</p>
-              <p className="text-3xl font-light text-slate-900 mt-2">1,248</p>
+              <p className="text-3xl font-light text-slate-900 mt-2">{stats.total}</p>
             </div>
             <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600">
               <Layers size={24} />
@@ -52,7 +62,7 @@ export default function PartitioningSummary() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">NPU Offload Rate</p>
-              <p className="text-3xl font-light text-emerald-600 mt-2">94.2%</p>
+              <p className="text-3xl font-light text-emerald-600 mt-2">{stats.rate}</p>
             </div>
             <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600">
               <Zap size={24} />
@@ -64,7 +74,7 @@ export default function PartitioningSummary() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-500">CPU Fallback</p>
-              <p className="text-3xl font-light text-amber-600 mt-2">72</p>
+              <p className="text-3xl font-light text-amber-600 mt-2">{stats.fallback}</p>
             </div>
             <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-amber-600">
               <Cpu size={24} />
